@@ -51,6 +51,5 @@ else
     WTYPE="Night"
 fi
 
-# echo $WTYPE
-
-/usr/bin/feh --randomize --bg-fill /home/wtheisen/Dropbox/Wallpapers/"$WTPYE"/*
+echo "$WTYPE"
+/usr/bin/feh --randomize --bg-fill /home/wtheisen/Dropbox/Wallpapers/"$WTYPE"/*
