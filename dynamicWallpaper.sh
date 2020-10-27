@@ -85,7 +85,7 @@ if [ $WEATHER != "0" ]; then
     get_simple_weather $W_TYPE $TEMP
 
     /usr/bin/feh --randomize --bg-fill "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"*
-else
-    echo $T_TYPE
-    /usr/bin/feh --randomize --bg-fill "$PAPE_PREFIX"/"$T_TYPE"/*
+    if [ $? -eq 0 ]; then exit 0; fi
 fi
+
+/usr/bin/feh --randomize --bg-fill "$PAPE_PREFIX"/"$T_TYPE"/*
