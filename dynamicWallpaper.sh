@@ -39,13 +39,13 @@ function get_simple_weather () {
     TEMP=$2
 
     if [ $(echo $W_TYPE | grep "sun") ] && (( Temp > 34 )); then
-        W_TYPE="sun_"
+        W_TYPE="Sun"
     elif [ $(echo $W_TYPE | grep "[rain|overcast]") ]; then
-        W_TYPE="rain_"
+        W_TYPE="Rain"
     elif [ $(echo $WTYPE | grep "snow") ] || ((Temp < 34)); then
-        W_TYPE="snow_"
+        W_TYPE="Snow"
     else
-        echo "";
+        echo "Misc";
     fi
 }
 
@@ -80,11 +80,12 @@ get_time_chunk "$SUNRISE" "$SUNSET"
 
 if [ $WEATHER != "0" ]; then
     get_weather $WEATHER
-    echo $T_TYPE $W_TYPE $TEMP
+    echo $W_TYPE
 
     get_simple_weather $W_TYPE $TEMP
 
-    /usr/bin/feh --randomize --bg-fill "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"*
+
+    find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | /usr/bin/feh --randomize --bg-fill -f -
     if [ $? -eq 0 ]; then exit 0; fi
 fi
 
