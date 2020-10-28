@@ -23,11 +23,11 @@ function get_time_chunk () {
 
     if [[ $TIMEDAY -lt $SUNRISE ]]; then
         T_TYPE="Night"
-    elif [[ $TIMEDAY -gt $SUNRISE ]] && (( TIMEDAY < SUNRISE + 400 )); then
+    elif [[ $TIMEDAY -gt $SUNRISE ]] && (( TIMEDAY < SUNRISE + 250 )); then
         T_TYPE="Morning"
-    elif (( TIMEDAY < SUNSET - 400 )) && (( TIMEDAY > SUNRISE + 400 )); then
+    elif (( TIMEDAY < SUNSET - 250 )) && (( TIMEDAY > SUNRISE + 250 )); then
         T_TYPE="Day"
-    elif (( TIMEDAY > SUNSET - 400 )) && [[ $TIMEDAY < $SUNSET ]]; then
+    elif (( TIMEDAY > SUNSET - 250 )) && [[ $TIMEDAY < $SUNSET ]]; then
         T_TYPE="Evening"
     else
         T_TYPE="Night"
