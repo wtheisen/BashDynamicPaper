@@ -1,5 +1,5 @@
 # BashDynamicPaper
-Dynamic wallpaper setter written in bash, I recommend you use it with a cron-job
+Dynamic wallpaper setter written in bash, I recommend you use it with a cron-job, requires [jq](https://stedolan.github.io/jq/) and [feh](https://feh.finalrewind.org/)
 
 ### Usage
 ```
