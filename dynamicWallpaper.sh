@@ -56,6 +56,23 @@ function get_simple_weather () {
     fi
 }
 
+function set_pape () {
+    T_TYPE=$1
+    W_TYPE=$2
+
+    if which osascript; then
+        echo "Mac"
+
+        PAPE=$(find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | shuf -n 1)
+        osascript -e 'tell application "System Events" to tell every desktop to set picture to "$PAPE"'
+    else
+        find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | /usr/bin/feh --randomize --bg-fill -f -
+        if [ $? -eq 0 ]; then exit 0; fi
+
+        /usr/bin/feh --randomize --bg-fill "$PAPE_PREFIX"/"$T_TYPE"/*
+    fi
+}
+
 function exit_help () {
     echo "USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT_CALLSIGN]"
     echo "\t-p: The prefix of your wallpaper folder without a trailing /"
@@ -89,7 +106,4 @@ get_time_chunk $SUNRISE $SUNSET
 get_weather $WEATHER
 get_simple_weather $W_TYPE $TEMP
 
-find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | /usr/bin/feh --randomize --bg-fill -f -
-if [ $? -eq 0 ]; then exit 0; fi
-
-/usr/bin/feh --randomize --bg-fill "$PAPE_PREFIX"/"$T_TYPE"/*
+set_pape $T_TYPE $WTYPE
