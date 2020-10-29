@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DATE=/bin/date
-if which osascript; then
+if which -s osascript; then
     DATE=/usr/local/bin/gdate
 fi
 
@@ -65,8 +65,8 @@ function set_pape () {
     T_TYPE=$1
     W_TYPE=$2
 
-    if which osascript; then
-        PAPE=$(find  "$PAPE_PREFIX"/"$T_TYPE""$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | shuf -n 1)
+    if which -s osascript; then
+        PAPE=$(find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | shuf -n 1)
         CMD_STR="tell application \"System Events\" to tell every desktop to set picture to \""$PAPE"\""
         osascript -e "$CMD_STR"
     else
@@ -110,4 +110,4 @@ get_time_chunk $SUNRISE $SUNSET
 get_weather $WEATHER
 get_simple_weather $W_TYPE $TEMP
 
-set_pape $T_TYPE $WTYPE
+set_pape $T_TYPE $W_TYPE
