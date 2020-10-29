@@ -1,5 +1,9 @@
 # BashDynamicPaper
-Dynamic wallpaper setter written in bash, I recommend you use it with a cron-job, requires [jq](https://stedolan.github.io/jq/) and [feh](https://feh.finalrewind.org/)
+Dynamic wallpaper setter written in bash that works on Linux and MacOS, I recommend you use it with a cron-job. 
+Requires both [jq](https://stedolan.github.io/jq/) and [feh](https://feh.finalrewind.org/)
+on linux. On mac it still requires [jq](https://stedolan.github.io/jq/) but instead of feh,
+[coreutils](https://formulae.brew.sh/formula/coreutils) (For shuf and gdate).
+
 
 ### Usage
 ```
