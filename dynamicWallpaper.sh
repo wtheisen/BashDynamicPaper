@@ -3,12 +3,7 @@
 JQ=/usr/bin/jq
 SHUF=/usr/bin/shuf
 DATE=/bin/date
-<<<<<<< HEAD
 if which osascript; then
-=======
-
-if which -s osascript; then
->>>>>>> 621f507e58a12cf423c4691fcbcda0954637cb41
     DATE=/usr/local/bin/gdate
     JQ=/usr/local/bin/jq
     SHUF=/usr/local/bin/shuf
@@ -74,13 +69,8 @@ function set_pape () {
     T_TYPE=$1
     W_TYPE=$2
 
-<<<<<<< HEAD
     if which osascript; then
         PAPE=$(find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | shuf -n 1)
-=======
-    if which -s osascript; then
-        PAPE=$(find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | $SHUF -n 1)
->>>>>>> 621f507e58a12cf423c4691fcbcda0954637cb41
         CMD_STR="tell application \"System Events\" to tell every desktop to set picture to \""$PAPE"\""
         osascript -e "$CMD_STR"
     else
