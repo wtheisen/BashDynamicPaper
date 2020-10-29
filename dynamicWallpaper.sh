@@ -1,5 +1,10 @@
 #!/bin/bash
 
+DATE=/bin/date
+if which osascript; then
+    DATE=/usr/local/bin/gdate
+fi
+
 function get_weather () {
     WEATHERDATA=$(curl -s "wttr.in/$1?format=j1")
 
@@ -16,13 +21,13 @@ function get_lat_long () {
 
 function get_rise_set_time () {
     T=$(echo $JSON | jq .results.sunrise | sed 's/"//g')
-    SUNRISE=$(date +"%H%M" -d $T | sed 's/^0//')
+    SUNRISE=$($DATE +"%H%M" -d $T | sed 's/^0//')
     T=$(echo $JSON | jq .results.sunset | sed 's/"//g')
-    SUNSET=$(date +"%H%M" -d $T | sed 's/^0//')
+    SUNSET=$($DATE +"%H%M" -d $T | sed 's/^0//')
 }
 
 function get_time_chunk () {
-    TIMEDAY=$(date +%H%M | sed 's/^0//')
+    TIMEDAY=$($DATE +%H%M | sed 's/^0//')
     T_TYPE="Day"
 
     SUNRISE="$1"
