@@ -26,3 +26,7 @@ As long as the folder structure is correct the actual images can be named whatev
 you like. Technically, if you have time of day folders, but no weather folders,
 the script will still work correctly. It will just default to selecting any image
 located in the time folder. 
+
+[Personal Wallpapers](https://www.dropbox.com/sh/nlgpsqia9mpxwqj/AACw_yVfhz_0K8jzVi44vkFja?dl=0)
+
+Here are the personal wallpapers I use if you want a small, already sorted, collection to start with.
