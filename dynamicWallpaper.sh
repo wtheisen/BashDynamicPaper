@@ -1,28 +1,33 @@
 #!/bin/bash
 
+JQ=/usr/bin/jq
+SHUF=/usr/bin/shuf
 DATE=/bin/date
+
 if which -s osascript; then
     DATE=/usr/local/bin/gdate
+    JQ=/usr/local/bin/jq
+    SHUF=/usr/local/bin/shuf
 fi
 
 function get_weather () {
     WEATHERDATA=$(curl -s "wttr.in/$1?format=j1")
 
-    TEMP=$(echo $WEATHERDATA | jq '.current_condition | .[0] | .FeelsLikeF' )
-    W_TYPE=$(echo $WEATHERDATA | jq '.current_condition | .[0] | .weatherDesc | .[0] | .value')
+    TEMP=$(echo $WEATHERDATA | $JQ '.current_condition | .[0] | .FeelsLikeF' )
+    W_TYPE=$(echo $WEATHERDATA | $JQ '.current_condition | .[0] | .weatherDesc | .[0] | .value')
 }
 
 function get_lat_long () {
     LOC_JSON=$(curl -s "https://www.airport-data.com/api/ap_info.json?icao=$1")
 
-    LAT=$(echo $LOC_JSON | jq '.latitude' | sed 's/"//g')
-    LNG=$(echo $LOC_JSON | jq '.longitude' | sed 's/"//g')
+    LAT=$(echo $LOC_JSON | $JQ '.latitude' | sed 's/"//g')
+    LNG=$(echo $LOC_JSON | $JQ '.longitude' | sed 's/"//g')
 }
 
 function get_rise_set_time () {
-    T=$(echo $JSON | jq .results.sunrise | sed 's/"//g')
+    T=$(echo $JSON | $JQ .results.sunrise | sed 's/"//g')
     SUNRISE=$($DATE +"%H%M" -d $T | sed 's/^0//')
-    T=$(echo $JSON | jq .results.sunset | sed 's/"//g')
+    T=$(echo $JSON | $JQ .results.sunset | sed 's/"//g')
     SUNSET=$($DATE +"%H%M" -d $T | sed 's/^0//')
 }
 
@@ -66,7 +71,7 @@ function set_pape () {
     W_TYPE=$2
 
     if which -s osascript; then
-        PAPE=$(find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | shuf -n 1)
+        PAPE=$(find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | $SHUF -n 1)
         CMD_STR="tell application \"System Events\" to tell every desktop to set picture to \""$PAPE"\""
         osascript -e "$CMD_STR"
     else
