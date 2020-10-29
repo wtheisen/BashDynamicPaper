@@ -5,13 +5,13 @@ Dynamic wallpaper setter written in bash, I recommend you use it with a cron-job
 ```
 USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT_ID]
     -p: The prefix of your wallpaper folder without a trailing /
-    -w: Optional argument specifying whether or not to use weather data, takes an airport identifier [E.G. LAX]
+    -w: Your local airport identifier in ICAO [E.G. KSBN], used as a proxy location for getting weather and time data
 ```
 
 ### File Formatting
 There are four different time chunks to sort your wallpapers into: Morning,
 Day, Evening, and Night. This will be set dynamically based on the time of
-the sunrise and sunset in your time-zone (currently hard-coded to EST).
+the sunrise and sunset in your time-zone (based on airport code).
 
 Weather specific papers should be stored in subdirectories of the four time
 directories. Currently the code respects 3 types of weather: "Sun", "Rain",
@@ -23,4 +23,6 @@ Ergo an example of a rainy day wallpaper might be:
 `/home/joe/Pictures/Wallpapers/Day/Rain/wet_park_bench.png`
 
 As long as the folder structure is correct the actual images can be named whatever
-you like.
+you like. Technically, if you have time of day folders, but no weather folders,
+the script will still work correctly. It will just default to selecting any image
+located in the time folder. 

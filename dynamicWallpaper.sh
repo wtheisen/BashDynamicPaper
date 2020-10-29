@@ -7,10 +7,17 @@ function get_weather () {
     W_TYPE=$(echo $WEATHERDATA | jq '.current_condition | .[0] | .weatherDesc | .[0] | .value')
 }
 
+function get_lat_long () {
+    LOC_JSON=$(curl -s "https://www.airport-data.com/api/ap_info.json?icao=$1")
+
+    LAT=$(echo $LOC_JSON | jq '.latitude' | sed 's/"//g')
+    LNG=$(echo $LOC_JSON | jq '.longitude' | sed 's/"//g')
+}
+
 function get_rise_set_time () {
-    T=$(echo $JSON | jq .results.sunrise | sed s/\"//g)
+    T=$(echo $JSON | jq .results.sunrise | sed 's/"//g')
     SUNRISE=$(date +"%H%M" -d $T | sed 's/^0//')
-    T=$(echo $JSON | jq .results.sunset | sed s/\"//g)
+    T=$(echo $JSON | jq .results.sunset | sed 's/"//g')
     SUNSET=$(date +"%H%M" -d $T | sed 's/^0//')
 }
 
@@ -50,9 +57,9 @@ function get_simple_weather () {
 }
 
 function exit_help () {
-    echo "USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT CALLSIGN]"
+    echo "USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT_CALLSIGN]"
     echo "\t-p: The prefix of your wallpaper folder without a trailing /"
-    echo "\t-w: Optional argument specifying whether or not to use weather data, use your local airport callsign [e.g. LAX]"
+    echo "\t-w: Local airport callsign in ICAO [e.g. KSBN], used for both time and weather location"
     exit 1
 }
 
@@ -72,21 +79,17 @@ while getopts ":p:w:" opts; do
     esac
 done
 
-URL="https://api.sunrise-sunset.org/json?lat=41.6833813&lng=-86.2500066&date=today&formatted=0"
+get_lat_long $WEATHER
+
+URL="https://api.sunrise-sunset.org/json?lat=$LAT&lng=$LNG&date=today&formatted=0"
 JSON=$(curl -s $URL)
 
 get_rise_set_time
-get_time_chunk "$SUNRISE" "$SUNSET"
+get_time_chunk $SUNRISE $SUNSET
+get_weather $WEATHER
+get_simple_weather $W_TYPE $TEMP
 
-if [ $WEATHER != "0" ]; then
-    get_weather $WEATHER
-    echo $W_TYPE
-
-    get_simple_weather $W_TYPE $TEMP
-    echo $W_TYPE
-
-    find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | /usr/bin/feh --randomize --bg-fill -f -
-    if [ $? -eq 0 ]; then exit 0; fi
-fi
+find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | /usr/bin/feh --randomize --bg-fill -f -
+if [ $? -eq 0 ]; then exit 0; fi
 
 /usr/bin/feh --randomize --bg-fill "$PAPE_PREFIX"/"$T_TYPE"/*
