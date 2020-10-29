@@ -61,10 +61,9 @@ function set_pape () {
     W_TYPE=$2
 
     if which osascript; then
-        echo "Mac"
-
-        PAPE=$(find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | shuf -n 1)
-        osascript -e 'tell application "System Events" to tell every desktop to set picture to "$PAPE"'
+        PAPE=$(find  "$PAPE_PREFIX"/"$T_TYPE""$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | shuf -n 1)
+        CMD_STR="tell application \"System Events\" to tell every desktop to set picture to \""$PAPE"\""
+        osascript -e "$CMD_STR"
     else
         find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | /usr/bin/feh --randomize --bg-fill -f -
         if [ $? -eq 0 ]; then exit 0; fi
