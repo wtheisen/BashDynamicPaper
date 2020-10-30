@@ -1,5 +1,5 @@
 #!/bin/bash
-export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID/bus"
+#export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID/bus"
 JQ=/usr/bin/jq
 SHUF=/usr/bin/shuf
 DATE=/bin/date
