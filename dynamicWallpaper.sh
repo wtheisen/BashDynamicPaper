@@ -116,4 +116,9 @@ get_weather "$weather"
 get_simple_weather "$w_type" "$temp"
 
 echo "Time Type: $t_type, Weather Type: $w_type"
+
+if [[ "$t_type" == "Night" ]] && [[ "$w_type" == "Sun" ]]; then
+    w_type="Misc"
+fi
+
 set_pape "$t_type" "$w_type"
