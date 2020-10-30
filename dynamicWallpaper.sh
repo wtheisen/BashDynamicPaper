@@ -10,28 +10,32 @@ if which -s osascript; then
     SHUF=/usr/local/bin/shuf
 fi
 
-function get_weather () {
+get_weather () {
     WEATHERDATA=$(curl -s "wttr.in/$1?format=j1")
 
     TEMP=$(echo $WEATHERDATA | $JQ '.current_condition | .[0] | .FeelsLikeF' )
     W_TYPE=$(echo $WEATHERDATA | $JQ '.current_condition | .[0] | .weatherDesc | .[0] | .value')
 }
 
-function get_lat_long () {
+get_lat_long () {
     LOC_JSON=$(curl -s "https://www.airport-data.com/api/ap_info.json?icao=$1")
 
-    LAT=$(echo $LOC_JSON | $JQ '.latitude' | sed 's/"//g')
-    LNG=$(echo $LOC_JSON | $JQ '.longitude' | sed 's/"//g')
+    # LAT=$(echo $LOC_JSON | $JQ '.latitude' | sed 's/"//g')
+    # LNG=$(echo $LOC_JSON | $JQ '.longitude' | sed 's/"//g')
+    LNG=$(echo $LOC_JSON | $JQ -r '.longitude')
+    LAT=$(echo $LOC_JSON | $JQ -r '.latitude')
 }
 
-function get_rise_set_time () {
-    T=$(echo $JSON | $JQ .results.sunrise | sed 's/"//g')
+get_rise_set_time () {
+    # T=$(echo $JSON | $JQ .results.sunrise | sed 's/"//g')
+    T=$(echo $JSON | $JQ -r .results.sunrise)
     SUNRISE=$($DATE +"%H%M" -d $T | sed 's/^0//')
-    T=$(echo $JSON | $JQ .results.sunset | sed 's/"//g')
+    # T=$(echo $JSON | $JQ .results.sunset | sed 's/"//g')
+    T=$(echo $JSON | $JQ -r .results.sunset)
     SUNSET=$($DATE +"%H%M" -d $T | sed 's/^0//')
 }
 
-function get_time_chunk () {
+get_time_chunk () {
     TIMEDAY=$($DATE +%H%M | sed 's/^0//')
     T_TYPE="Day"
 
@@ -51,7 +55,7 @@ function get_time_chunk () {
     fi
 }
 
-function get_simple_weather () {
+get_simple_weather () {
     W_TYPE=$(echo $1 | sed 's/\"//g')
     TEMP=$(echo $2 | sed 's/\"//g')
 
@@ -66,7 +70,7 @@ function get_simple_weather () {
     fi
 }
 
-function set_pape () {
+set_pape () {
     T_TYPE=$1
     W_TYPE=$2
 
@@ -82,7 +86,7 @@ function set_pape () {
     fi
 }
 
-function exit_help () {
+exit_help () {
     echo "USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT_CALLSIGN]"
     echo "\t-p: The prefix of your wallpaper folder without a trailing /"
     echo "\t-w: Local airport callsign in ICAO [e.g. KSBN], used for both time and weather location"
