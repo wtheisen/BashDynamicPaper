@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Change Paths
+
+
+# Change Paths here
 script=/home/niwo/Settings/Linux/scripts/BashDynamicPaper/dynamicWallpaper.sh
 dir=/home/niwo/Nextcloud/MEDIA/Photo/Wallpapers/Dynamic
 loc=EDLW
