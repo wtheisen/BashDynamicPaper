@@ -55,9 +55,9 @@ get_simple_weather () {
     w_type=$1
     temp=$2
 
-    if echo "$w_type" | grep -i -q -E "[sun|Clear]" && (( temp >= 34 )); then
+    if echo "$w_type" | grep -i -q -E "sun|clear" && (( temp >= 34 )); then
         w_type="Sun"
-    elif echo "$w_type" | grep -i -q -E "[rain|overcast]"; then
+    elif echo "$w_type" | grep -i -q -E "rain|overcast"; then
         w_type="Rain"
     elif echo "$w_type" | grep -q -i "snow" || ((temp < 34)); then
         w_type="Snow"
@@ -70,15 +70,15 @@ set_pape () {
     t_type=$1
     w_type=$2
 
+    if ! PAPE=$(find "$PAPE_PREFIX"/"$t_type"/"$w_type"/* "$PAPE_PREFIX"/"$t_type"/Misc/* | $SHUF -n 1); then
+        PAPE=$(find "$PAPE_PREFIX"/"$t_type"/* | $SHUF -n 1)
+    fi
+
     if which osascript; then
-        PAPE=$(find  "$PAPE_PREFIX"/"$t_type"/"$w_type"/* "$PAPE_PREFIX"/"$t_type"/Misc/* | $SHUF -n 1)
         CMD_STR="tell application \"System Events\" to tell every desktop to set picture to \"$PAPE\""
         osascript -e "$CMD_STR"
     else
-        if find  "$PAPE_PREFIX"/"$t_type"/"$w_type"/* "$PAPE_PREFIX"/"$t_type"/Misc/* | /usr/bin/feh --randomize --bg-fill -f -
-        then exit 0; fi
-
-        /usr/bin/feh --randomize --bg-fill "$PAPE_PREFIX"/"$t_type"/*
+        /usr/bin/feh --randomize --bg-fill "$PAPE"
     fi
 }
 
@@ -113,10 +113,11 @@ json=$(curl -s "$url")
 get_rise_set_time
 get_time_chunk "$sunrise" "$sunset"
 get_weather "$weather"
+
+echo "Real Weather: $w_type"
 get_simple_weather "$w_type" "$temp"
 
 echo "Time Type: $t_type, Weather Type: $w_type"
-
 if [[ "$t_type" == "Night" ]] && [[ "$w_type" == "Sun" ]]; then
     w_type="Misc"
 fi
