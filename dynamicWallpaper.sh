@@ -1,50 +1,43 @@
 #!/bin/bash
-
-JQ=/usr/bin/jq
-SHUF=/usr/bin/shuf
-DATE=/bin/date
-
-if which osascript; then
-    DATE=/usr/local/bin/gdate
-    JQ=/usr/local/bin/jq
-    SHUF=/usr/local/bin/shuf
-fi
+[[ "$(uname -s)" = "Darwin" ]] && PATH="/usr/local/bin:${PATH}"
+export PATH
+command -v gdate >/dev/null 2>&1 && date() { command gdate "${@}"; }
 
 get_weather () {
     weatherdata=$(curl -s "wttr.in/$1?format=j1")
 
-    temp=$(echo "$weatherdata" | $JQ -r '.current_condition | .[0] | .FeelsLikeF' )
-    w_type=$(echo "$weatherdata" | $JQ -r '.current_condition | .[0] | .weatherDesc | .[0] | .value')
+    temp=$(echo "$weatherdata" | jq -r '.current_condition | .[0] | .FeelsLikeF' )
+    w_type=$(echo "$weatherdata" | jq -r '.current_condition | .[0] | .weatherDesc | .[0] | .value')
 }
 
 get_lat_long () {
     loc_json=$(curl -s "https://www.airport-data.com/api/ap_info.json?icao=$1")
 
-    lng=$(echo "$loc_json" | $JQ -r '.longitude')
-    lat=$(echo "$loc_json" | $JQ -r '.latitude')
+    lng=$(echo "$loc_json" | jq -r '.longitude')
+    lat=$(echo "$loc_json" | jq -r '.latitude')
 }
 
 get_rise_set_time () {
-    utc_sunrise_time=$(echo "$json" | $JQ -r .results.sunrise)
-    sunrise=$($DATE +"%-k%M" -d "$utc_sunrise_time")
-    utc_sunset_time=$(echo "$json" | $JQ -r .results.sunset)
-    sunset=$($DATE +"%-k%M" -d "$utc_sunset_time")
+    utc_sunrise_time=$(echo "$json" | jq -r .results.sunrise)
+    sunrise=$(date +"%-k%M" -d "$utc_sunrise_time")
+    utc_sunset_time=$(echo "$json" | jq -r .results.sunset)
+    sunset=$(date +"%-k%M" -d "$utc_sunset_time")
 }
 
 get_time_chunk () {
-    time_day=$($DATE +%-k%M)
+    time_day=$(date +%-k%M)
     t_type="Day"
 
     sunrise="$1"
     sunset="$2"
 
-    if [[ $time_day -lt $sunrise ]]; then
+    if (( time_day < sunrise )); then
         t_type="Night"
-    elif [[ $time_day -gt $sunrise ]] && (( time_day < sunrise + 230 )); then
+    elif (( time_day >= sunrise )) && (( time_day < sunrise + 230 )); then
         t_type="Morning"
     elif (( time_day < sunset - 230 )) && (( time_day > sunrise + 230 )); then
         t_type="Day"
-    elif (( time_day > sunset - 230 )) && [[ $time_day < $sunset ]]; then
+    elif (( time_day > sunset - 230 )) && (( time_day < sunset )); then
         t_type="Evening"
     else
         t_type="Night"
@@ -70,15 +63,15 @@ set_pape () {
     t_type=$1
     w_type=$2
 
-    if ! PAPE=$(find "$PAPE_PREFIX"/"$t_type"/"$w_type"/* "$PAPE_PREFIX"/"$t_type"/Misc/* | $SHUF -n 1); then
-        PAPE=$(find "$PAPE_PREFIX"/"$t_type"/* | $SHUF -n 1)
+    if ! pape=$(find "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1); then
+        pape=$(find "$pape_prefix"/"$t_type"/* | shuf -n 1)
     fi
 
     if which osascript; then
-        CMD_STR="tell application \"System Events\" to tell every desktop to set picture to \"$PAPE\""
-        osascript -e "$CMD_STR"
+        cmd_str="tell application \"System Events\" to tell every desktop to set picture to \"$pape\""
+        osascript -e "$cmd_str"
     else
-        /usr/bin/feh --randomize --bg-fill "$PAPE"
+        /usr/bin/feh --randomize --bg-fill "$pape"
     fi
 }
 
@@ -94,7 +87,7 @@ weather="0"
 while getopts ":p:w:" opts; do
     case "${opts}" in
         p)
-            PAPE_PREFIX=${OPTARG}
+            pape_prefix=${OPTARG}
             ;;
         w)
             weather=${OPTARG}
