@@ -65,6 +65,7 @@ function get_simple_weather () {
     fi
 }
 
+
 function set_pape () {
     T_TYPE=$1
     W_TYPE=$2
@@ -74,10 +75,15 @@ function set_pape () {
         CMD_STR="tell application \"System Events\" to tell every desktop to set picture to \""$PAPE"\""
         osascript -e "$CMD_STR"
     else
-        find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | /usr/bin/feh --randomize --bg-fill -f -
+        PAPE=$(find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | shuf -n 1)
+        xfconf-query -c xfce4-desktop -l | grep --color=never last-image | while read path; do xfconf-query --channel xfce4-desktop --property $path -s "$PAPE"; done
+        #find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace1/last-image -s -
+        #find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | /usr/bin/feh --randomize --bg-fill -f -
         if [ $? -eq 0 ]; then exit 0; fi
 
-        /usr/bin/feh --randomize --bg-fill "$PAPE_PREFIX"/"$T_TYPE"/*
+        xfconf-query -c xfce4-desktop -l | grep --color=never last-image | while read path; do xfconf-query --channel xfce4-desktop --property $path -s "$PAPE"; done
+	#xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s "$PAPE_PREFIX"/"$T_TYPE"/*
+        #/usr/bin/feh --randomize --bg-fill "$PAPE_PREFIX"/"$T_TYPE"/*
     fi
 }
 
