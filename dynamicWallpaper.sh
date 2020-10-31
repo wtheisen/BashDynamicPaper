@@ -76,6 +76,7 @@ set_pape () {
     else
         pape=$(find  "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1)
 	if [[ $XDG_CURRENT_DESKTOP == XFCE ]]; then
+		export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID/bus"
         	xfconf-query -c xfce4-desktop -l | grep --color=never last-image | while read path; do xfconf-query --channel xfce4-desktop --property $path -s "$pape"; done
 	else
         	/usr/bin/feh --randomize --bg-fill "$pape"
