@@ -1,108 +1,100 @@
 #!/bin/bash
-#export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID/bus"
-JQ=/usr/bin/jq
-SHUF=/usr/bin/shuf
-DATE=/bin/date
-if which osascript; then
-    DATE=/usr/local/bin/gdate
-    JQ=/usr/local/bin/jq
-    SHUF=/usr/local/bin/shuf
-fi
+[[ "$(uname -s)" = "Darwin" ]] && PATH="/usr/local/bin:${PATH}"
+export PATH
+command -v gdate >/dev/null 2>&1 && date() { command gdate "${@}"; }
 
-function get_weather () {
-    WEATHERDATA=$(curl -s "wttr.in/$1?format=j1")
+get_weather () {
+    weatherdata=$(curl -s "wttr.in/$1?format=j1")
 
-    TEMP=$(echo $WEATHERDATA | $JQ '.current_condition | .[0] | .FeelsLikeF' )
-    W_TYPE=$(echo $WEATHERDATA | $JQ '.current_condition | .[0] | .weatherDesc | .[0] | .value')
+    temp=$(echo "$weatherdata" | jq -r '.current_condition | .[0] | .FeelsLikeF' )
+    w_type=$(echo "$weatherdata" | jq -r '.current_condition | .[0] | .weatherDesc | .[0] | .value')
 }
 
-function get_lat_long () {
-    LOC_JSON=$(curl -s "https://www.airport-data.com/api/ap_info.json?icao=$1")
+get_lat_long () {
+    loc_json=$(curl -s "https://www.airport-data.com/api/ap_info.json?icao=$1")
 
-    LAT=$(echo $LOC_JSON | $JQ '.latitude' | sed 's/"//g')
-    LNG=$(echo $LOC_JSON | $JQ '.longitude' | sed 's/"//g')
+    lng=$(echo "$loc_json" | jq -r '.longitude')
+    lat=$(echo "$loc_json" | jq -r '.latitude')
 }
 
-function get_rise_set_time () {
-    T=$(echo $JSON | $JQ .results.sunrise | sed 's/"//g')
-    SUNRISE=$($DATE +"%H%M" -d $T | sed 's/^0//')
-    T=$(echo $JSON | $JQ .results.sunset | sed 's/"//g')
-    SUNSET=$($DATE +"%H%M" -d $T | sed 's/^0//')
+get_rise_set_time () {
+    utc_sunrise_time=$(echo "$json" | jq -r .results.sunrise)
+    sunrise=$(date +"%-k%M" -d "$utc_sunrise_time")
+    utc_sunset_time=$(echo "$json" | jq -r .results.sunset)
+    sunset=$(date +"%-k%M" -d "$utc_sunset_time")
 }
 
-function get_time_chunk () {
-    TIMEDAY=$($DATE +%H%M | sed 's/^0//')
-    T_TYPE="Day"
+get_time_chunk () {
+    time_day=$(date +%-k%M)
+    t_type="Day"
 
-    SUNRISE="$1"
-    SUNSET="$2"
+    sunrise="$1"
+    sunset="$2"
 
-    if [[ $TIMEDAY -lt $SUNRISE ]]; then
-        T_TYPE="Night"
-    elif [[ $TIMEDAY -gt $SUNRISE ]] && (( TIMEDAY < SUNRISE + 230 )); then
-        T_TYPE="Morning"
-    elif (( TIMEDAY < SUNSET - 230 )) && (( TIMEDAY > SUNRISE + 230 )); then
-        T_TYPE="Day"
-    elif (( TIMEDAY > SUNSET - 230 )) && [[ $TIMEDAY < $SUNSET ]]; then
-        T_TYPE="Evening"
+    if (( time_day < sunrise )); then
+        t_type="Night"
+    elif (( time_day >= sunrise )) && (( time_day < sunrise + 230 )); then
+        t_type="Morning"
+    elif (( time_day < sunset - 230 )) && (( time_day > sunrise + 230 )); then
+        t_type="Day"
+    elif (( time_day > sunset - 230 )) && (( time_day < sunset )); then
+        t_type="Evening"
     else
-        T_TYPE="Night"
+        t_type="Night"
     fi
 }
 
-function get_simple_weather () {
-    W_TYPE=$(echo $1 | sed 's/\"//g')
-    TEMP=$(echo $2 | sed 's/\"//g')
+get_simple_weather () {
+    w_type=$1
+    temp=$2
 
-    if [ $(echo $W_TYPE | grep -i -E "[sun|Clear]") ] && (( TEMP >= 34 )); then
-        W_TYPE="Sun"
-    elif [ $(echo $W_TYPE | grep -i -E "[rain|overcast]") ]; then
-        W_TYPE="Rain"
-    elif [ $(echo $WTYPE | grep -i "snow") ] || ((TEMP < 34)); then
-        W_TYPE="Snow"
+    if echo "$w_type" | grep -i -q -E "sun|clear" && (( temp >= 34 )); then
+        w_type="Sun"
+    elif echo "$w_type" | grep -i -q -E "rain|overcast"; then
+        w_type="Rain"
+    elif echo "$w_type" | grep -q -i "snow" || ((temp < 34)); then
+        w_type="Snow"
     else
         echo "Misc";
     fi
 }
 
 
-function set_pape () {
-    T_TYPE=$1
-    W_TYPE=$2
+set_pape () {
+    t_type=$1
+    w_type=$2
+
+    if ! pape=$(find "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1); then
+        pape=$(find "$pape_prefix"/"$t_type"/* | shuf -n 1)
+    fi
+
 
     if which osascript; then
-        PAPE=$(find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | shuf -n 1)
-        CMD_STR="tell application \"System Events\" to tell every desktop to set picture to \""$PAPE"\""
-        osascript -e "$CMD_STR"
+        cmd_str="tell application \"System Events\" to tell every desktop to set picture to \"$pape\""
+        osascript -e "$cmd_str"
     else
-        PAPE=$(find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | shuf -n 1)
-        xfconf-query -c xfce4-desktop -l | grep --color=never last-image | while read path; do xfconf-query --channel xfce4-desktop --property $path -s "$PAPE"; done
-        #find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace1/last-image -s -
-        #find  "$PAPE_PREFIX"/"$T_TYPE"/"$W_TYPE"/* "$PAPE_PREFIX"/"$T_TYPE"/Misc/* | /usr/bin/feh --randomize --bg-fill -f -
-        if [ $? -eq 0 ]; then exit 0; fi
 
-        xfconf-query -c xfce4-desktop -l | grep --color=never last-image | while read path; do xfconf-query --channel xfce4-desktop --property $path -s "$PAPE"; done
-	#xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path -s "$PAPE_PREFIX"/"$T_TYPE"/*
-        #/usr/bin/feh --randomize --bg-fill "$PAPE_PREFIX"/"$T_TYPE"/*
+        /usr/bin/feh --randomize --bg-fill "$pape"
+
     fi
 }
 
-function exit_help () {
+exit_help () {
     echo "USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT_CALLSIGN]"
-    echo "\t-p: The prefix of your wallpaper folder without a trailing /"
-    echo "\t-w: Local airport callsign in ICAO [e.g. KSBN], used for both time and weather location"
+    printf "\t-p: The prefix of your wallpaper folder without a trailing /"
+    printf "\t-w: Local airport callsign in ICAO [e.g. KSBN], used for both time and weather location"
     exit 1
 }
 
-WEATHER="0"
+weather="0"
 
 while getopts ":p:w:" opts; do
     case "${opts}" in
         p)
-            PAPE_PREFIX=${OPTARG}
+            pape_prefix=${OPTARG}
             ;;
         w)
-            WEATHER=${OPTARG}
+            weather=${OPTARG}
             ;;
         *)
             exit_help
@@ -110,14 +102,21 @@ while getopts ":p:w:" opts; do
     esac
 done
 
-get_lat_long $WEATHER
+get_lat_long "$weather"
 
-URL="https://api.sunrise-sunset.org/json?lat=$LAT&lng=$LNG&date=today&formatted=0"
-JSON=$(curl -s $URL)
+url="https://api.sunrise-sunset.org/json?lat=$lat&lng=$lng&date=today&formatted=0"
+json=$(curl -s "$url")
 
 get_rise_set_time
-get_time_chunk $SUNRISE $SUNSET
-get_weather $WEATHER
-get_simple_weather $W_TYPE $TEMP
+get_time_chunk "$sunrise" "$sunset"
+get_weather "$weather"
 
-set_pape $T_TYPE $W_TYPE
+echo "Real Weather: $w_type"
+get_simple_weather "$w_type" "$temp"
+
+echo "Time Type: $t_type, Weather Type: $w_type"
+if [[ "$t_type" == "Night" ]] && [[ "$w_type" == "Sun" ]]; then
+    w_type="Misc"
+fi
+
+set_pape "$t_type" "$w_type"
