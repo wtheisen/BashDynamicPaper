@@ -70,24 +70,32 @@ set_pape () {
 
 
     if which osascript; then
+        PAPE=$(find  "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1)
         cmd_str="tell application \"System Events\" to tell every desktop to set picture to \"$pape\""
         osascript -e "$cmd_str"
     else
-
-        /usr/bin/feh --randomize --bg-fill "$pape"
-
+        pape=$(find  "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1)
+	if [[ $XDG_CURRENT_DESKTOP == XFCE ]]; then
+        	xfconf-query -c xfce4-desktop -l | grep --color=never last-image | while read path; do xfconf-query --channel xfce4-desktop --property $path -s "$pape"; done
+	else
+        	/usr/bin/feh --randomize --bg-fill "$pape"
+	fi
+        #if [ $? -eq 0 ]; then exit 0; fi
     fi
 }
 
 exit_help () {
     echo "USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT_CALLSIGN]"
-    printf "\t-p: The prefix of your wallpaper folder without a trailing /"
-    printf "\t-w: Local airport callsign in ICAO [e.g. KSBN], used for both time and weather location"
+    printf "\t-p: The prefix of your wallpaper folder without a trailing /\n"
+    printf "\t-w: Local airport callsign in ICAO [e.g. KSBN], used for both time and weather location \n"
     exit 1
 }
 
 weather="0"
 
+if [ $# -eq 0 ]; then
+	exit_help
+else
 while getopts ":p:w:" opts; do
     case "${opts}" in
         p)
@@ -101,7 +109,7 @@ while getopts ":p:w:" opts; do
             ;;
     esac
 done
-
+fi
 get_lat_long "$weather"
 
 url="https://api.sunrise-sunset.org/json?lat=$lat&lng=$lng&date=today&formatted=0"
