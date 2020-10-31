@@ -75,7 +75,8 @@ set_pape () {
         osascript -e "$cmd_str"
     else
         pape=$(find  "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1)
-	if [[ $XDG_CURRENT_DESKTOP == XFCE ]]; then
+	#if [[ $XDG_CURRENT_DESKTOP == XFCE ]]; then
+	if [[ $(w | grep xfce | grep -v grep) ]];then
 		export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID/bus"
         	xfconf-query -c xfce4-desktop -l | grep --color=never last-image | while read path; do xfconf-query --channel xfce4-desktop --property $path -s "$pape"; done
 	else
@@ -94,9 +95,11 @@ exit_help () {
 
 weather="0"
 
-if [ $# -eq 0 ]; then
-	exit_help
-else
+# TODO Fine tune this with the actual variables
+#if [ $# -eq 0 ]; then
+#if [ $# -ne 4 ]; then
+	#exit_help
+#else
 while getopts ":p:w:" opts; do
     case "${opts}" in
         p)
@@ -110,7 +113,8 @@ while getopts ":p:w:" opts; do
             ;;
     esac
 done
-fi
+#fi
+
 get_lat_long "$weather"
 
 url="https://api.sunrise-sunset.org/json?lat=$lat&lng=$lng&date=today&formatted=0"
@@ -124,6 +128,7 @@ echo "Real Weather: $w_type"
 get_simple_weather "$w_type" "$temp"
 
 echo "Time Type: $t_type, Weather Type: $w_type"
+
 if [[ "$t_type" == "Night" ]] && [[ "$w_type" == "Sun" ]]; then
     w_type="Misc"
 fi
