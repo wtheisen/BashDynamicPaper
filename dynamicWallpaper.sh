@@ -70,19 +70,33 @@ set_pape () {
 
 
     if which osascript; then
-        PAPE=$(find  "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1)
+        pape=$(find  "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1)
         cmd_str="tell application \"System Events\" to tell every desktop to set picture to \"$pape\""
         osascript -e "$cmd_str"
     else
         pape=$(find  "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1)
-	#if [[ $XDG_CURRENT_DESKTOP == XFCE ]]; then
-	if [[ $(w | grep xfce | grep -v grep) ]];then
+    case "$(w)" in
+	(*xfce*)
 		export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID/bus"
-        	xfconf-query -c xfce4-desktop -l | grep --color=never last-image | while read path; do xfconf-query --channel xfce4-desktop --property $path -s "$pape"; done
-	else
-        	/usr/bin/feh --randomize --bg-fill "$pape"
-	fi
-        #if [ $? -eq 0 ]; then exit 0; fi
+        	xfconf-query -c xfce4-desktop -l | \
+		grep --color=never last-image | \
+		while read -r path; do xfconf-query --channel xfce4-desktop --property "$path" -s "$pape"; done
+	;;
+	(*cinnamon*)
+	# You might find something useful in one of these gists:
+	# https://gist.github.com/rawiriblundell/2f4712037b2a06155a02a37878ab0c5a
+	# https://gist.github.com/rawiriblundell/7e0a302b0ebfe121fedeedb22f521d87
+	:
+  	;;
+	(*etc*)
+	:
+	;;
+
+	''|*)
+    	# Then as a catch-all, try feh here
+    	feh --randomize --bg-fill "$pape"
+  	;;
+    esac
     fi
 }
 
