@@ -50,7 +50,7 @@ get_simple_weather () {
 
     if echo "$w_type" | grep -i -q -E "sun|clear" && (( temp >= 34 )); then
         w_type="Sun"
-    elif echo "$w_type" | grep -i -q -E "rain|overcast"; then
+    elif echo "$w_type" | grep -i -q -E "rain|overcast|Light drizzle"; then
         w_type="Rain"
     elif echo "$w_type" | grep -q -i "snow" || ((temp < 34)); then
         w_type="Snow"
@@ -146,5 +146,4 @@ echo "Time Type: $t_type, Weather Type: $w_type"
 if [[ "$t_type" == "Night" ]] && [[ "$w_type" == "Sun" ]]; then
     w_type="Misc"
 fi
-
 set_pape "$t_type" "$w_type"
