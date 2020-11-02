@@ -147,3 +147,4 @@ if [[ "$t_type" == "Night" ]] && [[ "$w_type" == "Sun" ]]; then
     w_type="Misc"
 fi
 set_pape "$t_type" "$w_type"
+
