@@ -1,5 +1,5 @@
 # BashDynamicPaper
-Dynamic wallpaper setter written in bash that works on Linux and MacOS, I recommend you use it with a cron-job. 
+Dynamic wallpaper setter written in bash that works on Linux and MacOS, I recommend you use it with a cron-job.
 Requires both [jq](https://stedolan.github.io/jq/) and [feh](https://feh.finalrewind.org/)
 on linux. On mac it still requires [jq](https://stedolan.github.io/jq/) but instead of feh,
 [coreutils](https://formulae.brew.sh/formula/coreutils) (For shuf and gdate).
@@ -29,8 +29,11 @@ Ergo an example of a rainy day wallpaper might be:
 As long as the folder structure is correct the actual images can be named whatever
 you like. Technically, if you have time of day folders, but no weather folders,
 the script will still work correctly. It will just default to selecting any image
-located in the time folder. 
+located in the time folder.
 
 [Personal Wallpapers](https://www.dropbox.com/sh/nlgpsqia9mpxwqj/AACw_yVfhz_0K8jzVi44vkFja?dl=0)
 
 Here are the personal wallpapers I use if you want a small, already sorted, collection to start with.
+
+### Note
+This is a fork that includes a fix for xfce.
