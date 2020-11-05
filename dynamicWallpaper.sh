@@ -88,7 +88,7 @@ set_pape () {
 
     if [[ $use_wal -eq 1 ]]; then
         if which wal; then
-            /home/wtheisen/.local/bin/wal -i "$pape" -n --saturate 1.0 >> output.out
+            wal -i "$pape" -n --saturate 1.0 >> output.out
         else
             echo "Trying to use wal but it's not installed"
         fi
