@@ -11,7 +11,7 @@ get_weather () {
 }
 
 get_lat_long () {
-    loc_json=$(curl -s "https://www.airport-data.com/api/ap_info.json?icao=$1")
+    loc_json=$(curl -s "https://www.airport-data.com/api/ap_info.json?iata=$1")
 
     lng=$(echo "$loc_json" | jq -r '.longitude')
     lat=$(echo "$loc_json" | jq -r '.latitude')
@@ -70,11 +70,12 @@ set_pape () {
 
 
     if which osascript; then
-        pape=$(find  "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1)
+        # pape=$(find  "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1)
         cmd_str="tell application \"System Events\" to tell every desktop to set picture to \"$pape\""
         osascript -e "$cmd_str"
-    else
-        pape=$(find  "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1)
+        exit 0
+    fi
+
     case "$(w)" in
 	(*xfce*)
 		export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID/bus"
@@ -97,7 +98,6 @@ set_pape () {
     	feh --randomize --bg-fill "$pape"
   	;;
     esac
-    fi
 }
 
 exit_help () {

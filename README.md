@@ -9,7 +9,7 @@ on linux. On mac it still requires [jq](https://stedolan.github.io/jq/) but inst
 ```
 USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT_ID]
     -p: The prefix of your wallpaper folder without a trailing /
-    -w: Your local airport identifier in ICAO [E.G. KSBN], used as a proxy location for getting weather and time data
+    -w: Your local airport identifier in IATA [E.G. SBN], used as a proxy location for getting weather and time data
 ```
 
 ### File Formatting
@@ -35,5 +35,3 @@ located in the time folder.
 
 Here are the personal wallpapers I use if you want a small, already sorted, collection to start with.
 
-### Note
-This is a fork that includes a fix for xfce.
