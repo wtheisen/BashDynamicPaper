@@ -68,66 +68,78 @@ set_pape () {
         pape=$(find "$pape_prefix"/"$t_type"/* | shuf -n 1)
     fi
 
-
     if which osascript; then
-        # pape=$(find  "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1)
         cmd_str="tell application \"System Events\" to tell every desktop to set picture to \"$pape\""
         osascript -e "$cmd_str"
-        exit 0
+    else
+        case $XDG_CURRENT_DESKTOP in
+            *XFCE*)
+                export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID/bus"
+                    xfconf-query -c xfce4-desktop -l | \
+                grep --color=never last-image | \
+                while read -r path; do xfconf-query --channel xfce4-desktop --property "$path" -s "$pape"; done
+                ;;
+            *)
+                feh --randomize --bg-fill "$pape"
+                ;;
+        esac
+
     fi
 
-    case "$(w)" in
-	(*xfce*)
-		export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID/bus"
-        	xfconf-query -c xfce4-desktop -l | \
-		grep --color=never last-image | \
-		while read -r path; do xfconf-query --channel xfce4-desktop --property "$path" -s "$pape"; done
-	;;
-	(*cinnamon*)
-	# You might find something useful in one of these gists:
-	# https://gist.github.com/rawiriblundell/2f4712037b2a06155a02a37878ab0c5a
-	# https://gist.github.com/rawiriblundell/7e0a302b0ebfe121fedeedb22f521d87
-	:
-  	;;
-	(*etc*)
-	:
-	;;
-
-	''|*)
-    	# Then as a catch-all, try feh here
-    	feh --randomize --bg-fill "$pape"
-  	;;
-    esac
+    if [[ $use_wal -eq 1 ]]; then
+        if which wal; then
+            /home/wtheisen/.local/bin/wal -i "$pape" -n --saturate 1.0 >> output.out
+        else
+            echo "Trying to use wal but it's not installed"
+        fi
+    fi
 }
 
 exit_help () {
+    echo "ERROR: $1"
     echo "USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT_CALLSIGN]"
     printf "\t-p: The prefix of your wallpaper folder without a trailing /\n"
     printf "\t-w: Local airport callsign in ICAO [e.g. KSBN], used for both time and weather location \n"
+    printf "\t--wal: Use pywal if it's installed\n"
     exit 1
 }
 
-weather="0"
 
 # TODO Fine tune this with the actual variables
 #if [ $# -eq 0 ]; then
 #if [ $# -ne 4 ]; then
 	#exit_help
 #else
-while getopts ":p:w:" opts; do
-    case "${opts}" in
-        p)
-            pape_prefix=${OPTARG}
+
+weather="0"
+pape_prefix="0"
+use_wal=0
+
+while [[ $# -gt 0 ]]; do
+    arg="$1"
+
+    case $arg in
+        -p)
+            pape_prefix="$2"
+            shift; shift
             ;;
-        w)
-            weather=${OPTARG}
+        -w)
+            weather="$2"
+            shift; shift
+            ;;
+        --wal)
+            use_wal=1
+            shift;
             ;;
         *)
-            exit_help
+            exit_help "Unrecognized argument"
             ;;
     esac
 done
-#fi
+
+if [[ "$pape_prefix" == "0" ]] || [[ "$weather" == "0" ]]; then
+    exit_help "Either the paper prefix or airport code is unset"
+fi
 
 get_lat_long "$weather"
 
@@ -140,11 +152,10 @@ get_weather "$weather"
 
 echo "Real Weather: $w_type"
 get_simple_weather "$w_type" "$temp"
-
 echo "Time Type: $t_type, Weather Type: $w_type"
 
 if [[ "$t_type" == "Night" ]] && [[ "$w_type" == "Sun" ]]; then
     w_type="Misc"
 fi
-set_pape "$t_type" "$w_type"
 
+set_pape "$t_type" "$w_type"

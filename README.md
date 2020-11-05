@@ -10,6 +10,7 @@ on linux. On mac it still requires [jq](https://stedolan.github.io/jq/) but inst
 USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT_ID]
     -p: The prefix of your wallpaper folder without a trailing /
     -w: Your local airport identifier in IATA [E.G. SBN], used as a proxy location for getting weather and time data
+ --wal: Use pywal if it's installed
 ```
 
 ### File Formatting
