@@ -2,7 +2,9 @@
 Dynamic wallpaper setter written in bash that works on Linux and MacOS, I recommend you use it with a cron-job.
 Requires both [jq](https://stedolan.github.io/jq/) and [feh](https://feh.finalrewind.org/)
 on linux. On mac it still requires [jq](https://stedolan.github.io/jq/) but instead of feh,
-[coreutils](https://formulae.brew.sh/formula/coreutils) (For shuf and gdate).
+[coreutils](https://formulae.brew.sh/formula/coreutils) (For shuf and gdate). Will
+also play nicely with [pywal](https://github.com/dylanaraps/pywal) should you want
+ to change your themes w/r/t the wallpaper.
 
 
 ### Usage
