@@ -1,6 +1,5 @@
 #!/bin/bash
-[[ "$(uname -s)" = "Darwin" ]] && PATH="/usr/local/bin:${PATH}"
-export PATH
+[[ "$(uname -s)" = "Darwin" ]] && PATH="/usr/local/bin:${PATH}" && export PATH
 command -v gdate >/dev/null 2>&1 && date() { command gdate "${@}"; }
 
 get_weather () {
@@ -87,8 +86,9 @@ set_pape () {
     fi
 
     if [[ $use_wal -eq 1 ]]; then
+        PATH="$HOME/.local/bin":${PATH} && export PATH
         if which wal; then
-            wal -i "$pape" -n --saturate 1.0 >> output.out
+            wal -i "$pape" -n --saturate 1.0
         else
             echo "Trying to use wal but it's not installed"
         fi
