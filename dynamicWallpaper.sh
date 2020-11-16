@@ -67,6 +67,13 @@ set_pape () {
         pape=$(find "$pape_prefix"/"$t_type"/* | shuf -n 1)
     fi
 
+    if [[ $embed -eq 1 ]]; then
+        convert $pape <( curl -s wttr.in/$1_qp0.png ) -geometry +50+50 -composite embed_pape.png
+        pape="$(pwd)/embed_pape.png"
+    fi
+
+    echo "$pape"
+
     if which osascript; then
         cmd_str="tell application \"System Events\" to tell every desktop to set picture to \"$pape\""
         osascript -e "$cmd_str"
@@ -86,7 +93,10 @@ set_pape () {
     fi
 
     if [[ $use_wal -eq 1 ]]; then
-        PATH="$HOME/.local/bin":${PATH} && export PATH
+        if ! which wal; then
+            PATH="$HOME/.local/bin":${PATH} && export PATH
+        fi
+
         if which wal; then
             wal -i "$pape" -n --saturate 1.0
         else
@@ -114,6 +124,7 @@ exit_help () {
 weather="0"
 pape_prefix="0"
 use_wal=0
+embed=0
 
 while [[ $# -gt 0 ]]; do
     arg="$1"
@@ -129,6 +140,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --wal)
             use_wal=1
+            shift;
+            ;;
+        -e)
+            embed=1
             shift;
             ;;
         *)
