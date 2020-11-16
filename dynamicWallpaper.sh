@@ -68,11 +68,9 @@ set_pape () {
     fi
 
     if [[ $embed -eq 1 ]]; then
-        convert $pape <( curl -s wttr.in/$1_qp0.png ) -geometry +50+50 -composite embed_pape.png
+        convert $pape <( curl -s wttr.in/$1_tqp0.png ) -gravity center -geometry +0+0 -composite embed_pape.png
         pape="$(pwd)/embed_pape.png"
     fi
-
-    echo "$pape"
 
     if which osascript; then
         cmd_str="tell application \"System Events\" to tell every desktop to set picture to \"$pape\""
