@@ -6,6 +6,9 @@ on linux. On mac it still requires [jq](https://stedolan.github.io/jq/) but inst
 also play nicely with [pywal](https://github.com/dylanaraps/pywal) should you want
  to change your themes w/r/t the wallpaper.
 
+### Example
+
+![Example](./example.gif)
 
 ### Usage
 ```
