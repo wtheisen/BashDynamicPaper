@@ -77,6 +77,10 @@ set_pape () {
     if which osascript; then
         cmd_str="tell application \"System Events\" to tell every desktop to set picture to \"$pape\""
         osascript -e "$cmd_str"
+
+        if [[ $embed -eq 1 ]]; then
+            killall Dock
+        fi
     else
         case $XDG_CURRENT_DESKTOP in
             *XFCE*)
