@@ -1,5 +1,9 @@
 # BashDynamicPaper
-Dynamic wallpaper setter written in bash that works on Linux and MacOS, I recommend you use it with a cron-job.
+Dynamic wallpaper setter written in bash that works on Linux and MacOS. Using all of the features, it 
+will change your wallpaper based both on the time of day and the weather. The time of day is divided 
+into four categories: morning, day, evening, and night. A sunrise/sunset api is used, which means that
+the code will adjust as the seasons change and night grows shorter or longer. The supported weather types
+right now are just rain, sun, and snow. If there are more of them you'd like to see I'm more than happy to add support.
 Requires both [jq](https://stedolan.github.io/jq/) and [feh](https://feh.finalrewind.org/)
 on linux. On mac it still requires [jq](https://stedolan.github.io/jq/) but instead of feh,
 [coreutils](https://formulae.brew.sh/formula/coreutils) (For shuf and gdate). Will
