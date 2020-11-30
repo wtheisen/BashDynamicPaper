@@ -4,7 +4,9 @@ Requires both [jq](https://stedolan.github.io/jq/) and [feh](https://feh.finalre
 on linux. On mac it still requires [jq](https://stedolan.github.io/jq/) but instead of feh,
 [coreutils](https://formulae.brew.sh/formula/coreutils) (For shuf and gdate). Will
 also play nicely with [pywal](https://github.com/dylanaraps/pywal) should you want
- to change your themes w/r/t the wallpaper.
+ to change your themes w/r/t the wallpaper. Right now it uses [wttr.in]()'s ability
+to get the location via IP so if you're using a VPN it might not play nicely.
+Currently `--zip` only supports the locations in the United States.
 
 ### Example
 
@@ -14,9 +16,10 @@ also play nicely with [pywal](https://github.com/dylanaraps/pywal) should you wa
 ```
 USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT_ID]
     -p: The prefix of your wallpaper folder without a trailing /
-    -w: Your local airport identifier in IATA [E.G. SBN], used as a proxy location for getting weather and time data
- --wal: Use pywal if it's installed
     -e: Embed a weather report into the middle of the background
+--iata: Your local airport identifier in IATA [E.G. SBN], used as a proxy location for time data
+ --zip: If you're rather far from an airport use your zipcode instead
+ --wal: Use pywal if it's installed
 ```
 
 ### File Formatting

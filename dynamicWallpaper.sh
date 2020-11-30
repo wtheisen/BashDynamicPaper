@@ -3,17 +3,25 @@
 command -v gdate >/dev/null 2>&1 && date() { command gdate "${@}"; }
 
 get_weather () {
-    weatherdata=$(curl -s "wttr.in/$1?format=j1")
+    # weatherdata=$(curl -s "wttr.in/$1?format=j1")
+    weatherdata=$(curl -s "wttr.in/?format=j1")
 
     temp=$(echo "$weatherdata" | jq -r '.current_condition | .[0] | .FeelsLikeF' )
     w_type=$(echo "$weatherdata" | jq -r '.current_condition | .[0] | .weatherDesc | .[0] | .value')
 }
 
 get_lat_long () {
-    loc_json=$(curl -s "https://www.airport-data.com/api/ap_info.json?iata=$1")
+    if [[ $iata != "0" ]]; then
+        loc_json=$(curl -s "https://www.airport-data.com/api/ap_info.json?iata=$iata")
 
-    lng=$(echo "$loc_json" | jq -r '.longitude')
-    lat=$(echo "$loc_json" | jq -r '.latitude')
+        lng=$(echo "$loc_json" | jq -r '.longitude')
+        lat=$(echo "$loc_json" | jq -r '.latitude')
+    else
+        loc_json=$(curl -s "https://public.opendatasoft.com/api/records/1.0/search/?dataset=us-zip-code-latitude-and-longitude&q=$zip")
+
+        lng=$(echo "$loc_json" | jq -r '.records[0].fields.longitude')
+        lat=$(echo "$loc_json" | jq -r '.records[0].fields.latitude')
+    fi
 }
 
 get_rise_set_time () {
@@ -27,16 +35,13 @@ get_time_chunk () {
     time_day=$(date +%-k%M)
     t_type="Day"
 
-    sunrise="$1"
-    sunset="$2"
-
     if (( time_day < sunrise )); then
         t_type="Night"
-    elif (( time_day >= sunrise )) && (( time_day < sunrise + 230 )); then
+    elif (( time_day >= sunrise )) && (( time_day < sunrise + 130 )); then
         t_type="Morning"
-    elif (( time_day < sunset - 230 )) && (( time_day > sunrise + 230 )); then
+    elif (( time_day < sunset - 130 )) && (( time_day > sunrise + 130 )); then
         t_type="Day"
-    elif (( time_day > sunset - 230 )) && (( time_day < sunset )); then
+    elif (( time_day > sunset - 130 )) && (( time_day < sunset )); then
         t_type="Evening"
     else
         t_type="Night"
@@ -44,9 +49,6 @@ get_time_chunk () {
 }
 
 get_simple_weather () {
-    w_type=$1
-    temp=$2
-
     echo "Temp: $temp"
 
     if echo "$w_type" | grep -i -q -E "sun|clear" && (( temp >= 34 )); then
@@ -62,15 +64,13 @@ get_simple_weather () {
 
 
 set_pape () {
-    t_type=$1
-    w_type=$2
 
     if ! pape=$(find "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1); then
         pape=$(find "$pape_prefix"/"$t_type"/* | shuf -n 1)
     fi
 
     if [[ $embed -eq 1 ]]; then
-        convert $pape <( curl -s wttr.in/$1_tqp0.png ) -gravity center -geometry +0+0 -composite embed_pape.png
+        convert "$pape" <( curl -s "wttr.in/_tqp0.png" ) -gravity center -geometry +0+0 -composite embed_pape.png
         pape="$(pwd)/embed_pape.png"
     fi
 
@@ -109,19 +109,15 @@ exit_help () {
     echo "ERROR: $1"
     echo "USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT_CALLSIGN]"
     printf "\t-p: The prefix of your wallpaper folder without a trailing /\n"
-    printf "\t-w: Local airport callsign in ICAO [e.g. KSBN], used for both time and weather location \n"
+    printf "\t-e: Embed a little weather preview png in the wallpaper\n"
+    printf "\t--iata: Local airport callsign in IATA [e.g. SBN], used for the time parameters\n"
+    printf "\t--zip: If you're in the US and at some distance from an airport, use your zipcode instead\n"
     printf "\t--wal: Use pywal if it's installed\n"
     exit 1
 }
 
-
-# TODO Fine tune this with the actual variables
-#if [ $# -eq 0 ]; then
-#if [ $# -ne 4 ]; then
-	#exit_help
-#else
-
-weather="0"
+iata="0"
+zip="0"
 pape_prefix="0"
 use_wal=0
 embed=0
@@ -134,8 +130,12 @@ while [[ $# -gt 0 ]]; do
             pape_prefix="$2"
             shift; shift
             ;;
-        -w)
-            weather="$2"
+        --iata)
+            iata="$2"
+            shift; shift
+            ;;
+        --zip)
+            zip="$2"
             shift; shift
             ;;
         --wal)
@@ -152,25 +152,25 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [[ "$pape_prefix" == "0" ]] || [[ "$weather" == "0" ]]; then
+if [[ "$pape_prefix" == "0" ]]; then
     exit_help "Either the paper prefix or airport code is unset"
 fi
 
-get_lat_long "$weather"
+get_lat_long
 
 url="https://api.sunrise-sunset.org/json?lat=$lat&lng=$lng&date=today&formatted=0"
 json=$(curl -s "$url")
 
 get_rise_set_time
-get_time_chunk "$sunrise" "$sunset"
-get_weather "$weather"
+get_time_chunk
+get_weather
 
 echo "Real Weather: $w_type"
-get_simple_weather "$w_type" "$temp"
+get_simple_weather
 echo "Time Type: $t_type, Weather Type: $w_type"
 
 if [[ "$t_type" == "Night" ]] && [[ "$w_type" == "Sun" ]]; then
     w_type="Misc"
 fi
 
-set_pape "$t_type" "$w_type"
+set_pape
