@@ -88,8 +88,8 @@ set_pape () {
     fi
 
     if which osascript; then
-        rm /Users/wtheisen/Pictures/Weather\ Wallpaper/*.png
-        cp "$pape" "/Users/wtheisen/Pictures/Weather Wallpaper/"
+        rm ~/Pictures/Weather\ Wallpaper/*.png
+        cp "$pape" ~/Pictures/Weather\ Wallpaper/
     else
         case $XDG_CURRENT_DESKTOP in
             *XFCE*)
