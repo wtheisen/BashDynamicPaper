@@ -69,18 +69,26 @@ set_pape () {
         pape=$(find "$pape_prefix"/"$t_type"/* | shuf -n 1)
     fi
 
+    if which osascript; then
+        res=$(system_profiler SPDisplaysDataType | grep Resolution | awk '{print $2, $4}' | tr " " "x")
+    elif
+        res="1920x1080"
+    fi
+
+    convert "$pape" -resize "$res" resized_pape.png
+    pape="$(pwd)/resized_pape.png"
+
     if [[ $embed -eq 1 ]]; then
-        convert "$pape" <( curl -s "wttr.in/_tqp0.png" ) -gravity center -geometry +0+0 -composite embed_pape.png
-        pape="$(pwd)/embed_pape.png"
+        rm embed_pape_*
+        stamped_pape="embed_pape_$(date +%T).png"
+        convert <( curl -s "wttr.in/_tqp0.png" ) -resize 200% weather_report.png
+        convert "$pape" "weather_report.png" -gravity center -geometry +0+0 -composite $stamped_pape
+        pape="$(pwd)/$stamped_pape"
     fi
 
     if which osascript; then
-        cmd_str="tell application \"System Events\" to tell every desktop to set picture to \"$pape\""
-        osascript -e "$cmd_str"
-
-        if [[ $embed -eq 1 ]]; then
-            killall Dock
-        fi
+        rm /Users/wtheisen/Pictures/Weather\ Wallpaper/*.png
+        cp $pape "/Users/wtheisen/Pictures/Weather Wallpaper/"
     else
         case $XDG_CURRENT_DESKTOP in
             *XFCE*)
@@ -107,6 +115,9 @@ set_pape () {
             echo "Trying to use wal but it's not installed"
         fi
     fi
+
+    rm resized_pape.png
+    rm $stamped_pape
 }
 
 exit_help () {
