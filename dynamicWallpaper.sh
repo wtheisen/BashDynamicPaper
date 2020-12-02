@@ -71,8 +71,9 @@ set_pape () {
 
     if which osascript; then
         res=$(system_profiler SPDisplaysDataType | grep Resolution | awk '{print $2, $4}' | tr " " "x")
-    elif
-        res="1920x1080"
+    else
+        pos_res=$(xrandr | grep \ connected | awk '{if ($3 == "primary") {print $4} else {print $3} }' | cut -f 1 -d '+')
+        res=$(echo "$pos_res" | head -n 1)
     fi
 
     convert "$pape" -resize "$res" resized_pape.png
