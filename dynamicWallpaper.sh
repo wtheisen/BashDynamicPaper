@@ -71,7 +71,7 @@ set_pape () {
 
     if which osascript; then
         res=$(system_profiler SPDisplaysDataType | grep Resolution | awk '{print $2, $4}' | tr " " "x")
-    elif
+    else
         res="1920x1080"
     fi
 
