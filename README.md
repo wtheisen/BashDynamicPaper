@@ -10,7 +10,8 @@ on linux. On mac it still requires [jq](https://stedolan.github.io/jq/) but inst
 also play nicely with [pywal](https://github.com/dylanaraps/pywal) should you want
  to change your themes w/r/t the wallpaper. Right now it uses [wttr.in]()'s ability
 to get the location via IP so if you're using a VPN it might not play nicely.
-Currently `--zip` only supports the locations in the United States.
+Currently `--zip` only supports the locations in the United States. If you're using
+macOS it's critical you read [the note](#a-note-on-macos).
 
 ### Example
 
@@ -49,3 +50,17 @@ located in the time folder.
 
 Here are the personal wallpapers I use if you want a small, already sorted, collection to start with.
 
+### A Note on macOS
+Unfortunately, macOS does not have an accessible API for "spaces", or the virtual
+desktops that you can access with 3 fingered swipes. Most wallpaper switchers
+(that I've seen) overcome this limitation by running `killall Dock` after changing
+the wallpaper and thus forcing a refresh. To me this seems like it's asking for
+trouble. Thanks to the help of my very clever [friend](https://github.com/AndrewLitteken),
+a different solution has been found. Right now the solution is to make a new
+directory `~/Pictures/Weather Wallpaper`.  After doing so, set up the system wallpaper
+changer to randomly set a new wallpaper from that folder. Run your cron-job at an 
+interval slightly shorter than the interval you've set to rotate the wallpaper. 
+The script will then manage the images in this folder, but allow the system to 
+actually manage the wallpaper, obviously albiet from a limited selection. Thus 
+we overcome the limitations while avoiding killing the dock every time we want to
+change a paper.

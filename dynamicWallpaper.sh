@@ -70,26 +70,26 @@ set_pape () {
     fi
 
     if which osascript; then
-        res=$(system_profiler SPDisplaysDataType | grep Resolution | awk '{print $2, $4}' | tr " " "x")
+        res=$(/usr/sbin/system_profiler SPDisplaysDataType | grep Resolution | awk '{print $2, $4}' | tr " " "x")
     else
         pos_res=$(xrandr | grep \ connected | awk '{if ($3 == "primary") {print $4} else {print $3} }' | cut -f 1 -d '+')
         res=$(echo "$pos_res" | head -n 1)
     fi
 
     convert "$pape" -resize "$res" resized_pape.png
-    pape="$(pwd)/resized_pape.png"
+    pape="resized_pape.png"
 
     if [[ $embed -eq 1 ]]; then
         rm embed_pape_*
         stamped_pape="embed_pape_$(date +%T).png"
         convert <( curl -s "wttr.in/_tqp0.png" ) -resize 200% weather_report.png
-        convert "$pape" "weather_report.png" -gravity center -geometry +0+0 -composite $stamped_pape
-        pape="$(pwd)/$stamped_pape"
+        convert "$pape" "weather_report.png" -gravity center -geometry +0+0 -composite "$stamped_pape"
+        pape="$stamped_pape"
     fi
 
     if which osascript; then
         rm /Users/wtheisen/Pictures/Weather\ Wallpaper/*.png
-        cp $pape "/Users/wtheisen/Pictures/Weather Wallpaper/"
+        cp "$pape" "/Users/wtheisen/Pictures/Weather Wallpaper/"
     else
         case $XDG_CURRENT_DESKTOP in
             *XFCE*)
@@ -119,7 +119,7 @@ set_pape () {
 
     rm weather_report.png
     rm resized_pape.png
-    rm $stamped_pape
+    rm "$stamped_pape"
 }
 
 exit_help () {
