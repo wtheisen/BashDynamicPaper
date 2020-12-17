@@ -19,7 +19,7 @@ macOS it's critical you read [the note](#a-note-on-macos).
 
 ### Usage
 ```
-USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT_ID]
+USAGE: dynamicWallpaper -p [PAPER_PREFIX] --iata [AIRPORT_ID]
     -p: The prefix of your wallpaper folder without a trailing /
     -e: Embed a weather report into the middle of the background
 --iata: Your local airport identifier in IATA [E.G. SBN], used as a proxy location for time data
