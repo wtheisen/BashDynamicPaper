@@ -1,4 +1,5 @@
 #!/bin/bash
+
 [[ "$(uname -s)" = "Darwin" ]] && PATH="/usr/local/bin:${PATH}" && export PATH
 command -v gdate >/dev/null 2>&1 && date() { command gdate "${@}"; }
 
@@ -6,33 +7,18 @@ get_weather () {
     # weatherdata=$(curl -s "wttr.in/$1?format=j1")
     weatherdata=$(curl -s "wttr.in/?format=j1")
 
-    temp=$(echo "$weatherdata" | jq -r '.current_condition | .[0] | .FeelsLikeF' )
-    w_type=$(echo "$weatherdata" | jq -r '.current_condition | .[0] | .weatherDesc | .[0] | .value')
-}
-
-get_lat_long () {
-    if [[ $iata != "0" ]]; then
-        loc_json=$(curl -s "https://www.airport-data.com/api/ap_info.json?iata=$iata")
-
-        lng=$(echo "$loc_json" | jq -r '.longitude')
-        lat=$(echo "$loc_json" | jq -r '.latitude')
-    else
-        loc_json=$(curl -s "https://public.opendatasoft.com/api/records/1.0/search/?dataset=us-zip-code-latitude-and-longitude&q=$zip")
-
-        lng=$(echo "$loc_json" | jq -r '.records[0].fields.longitude')
-        lat=$(echo "$loc_json" | jq -r '.records[0].fields.latitude')
-    fi
-}
-
-get_rise_set_time () {
-    utc_sunrise_time=$(echo "$json" | jq -r .results.sunrise)
-    sunrise=$(date +"%-k%M" -d "$utc_sunrise_time")
-    utc_sunset_time=$(echo "$json" | jq -r .results.sunset)
-    sunset=$(date +"%-k%M" -d "$utc_sunset_time")
+    temp=$(echo "$weatherdata" | jq -r '.current_condition[0].temp_F' )
+    w_type=$(echo "$weatherdata" | jq -r '.current_condition[0].weatherDesc[0].value')
+    sunrise=$(echo "$weatherdata" | jq -r '.weather[0].astronomy[0].sunrise' | tr -d ":AM[:space:]" | sed 's/^0//')
+    sunset=$(echo "$weatherdata" | jq -r '.weather[0].astronomy[0].sunset'| tr -d ":PM[:space:]" | sed 's/^0//')
+    sunset=$((sunset + 1200))
 }
 
 get_time_chunk () {
     time_day=$(date +%-k%M)
+
+    echo "$sunrise ~ $time_day ~ $sunset"
+
     t_type="Day"
 
     if (( time_day < sunrise )); then
@@ -41,7 +27,7 @@ get_time_chunk () {
         t_type="Morning"
     elif (( time_day < sunset - 130 )) && (( time_day > sunrise + 130 )); then
         t_type="Day"
-    elif (( time_day > sunset - 130 )) && (( time_day < sunset )); then
+    elif (( time_day > sunset - 100 )) && (( time_day < sunset )); then
         t_type="Evening"
     else
         t_type="Night"
@@ -64,32 +50,34 @@ get_simple_weather () {
 
 
 set_pape () {
-
     if ! pape=$(find "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1); then
         pape=$(find "$pape_prefix"/"$t_type"/* | shuf -n 1)
     fi
 
-    if which osascript; then
-        res=$(system_profiler SPDisplaysDataType | grep Resolution | awk '{print $2, $4}' | tr " " "x")
-    else
-        pos_res=$(xrandr | grep \ connected | awk '{if ($3 == "primary") {print $4} else {print $3} }' | cut -f 1 -d '+')
-        res=$(echo "$pos_res" | head -n 1)
-    fi
-
-    convert "$pape" -resize "$res" resized_pape.png
-    pape="$(pwd)/resized_pape.png"
 
     if [[ $embed -eq 1 ]]; then
+        if which osascript; then
+            res=$(/usr/sbin/system_profiler SPDisplaysDataType | grep Resolution | awk '{print $2, $4}' | tr " " "x")
+        else
+            pos_res=$(xrandr | grep \ connected | awk '{if ($3 == "primary") {print $4} else {print $3} }' | cut -f 1 -d '+')
+            res=$(echo "$pos_res" | head -n 1)
+        fi
+
+        echo "Res: $res"
+        convert "$pape" -resize "$res" resized_pape.png
+        pape="resized_pape.png"
+
         rm embed_pape_*
+        convert <( curl -s "wttr.in/_tqp0.png" ) weather_report.png
+        convert "$pape" "weather_report.png" -gravity center -geometry +0+0 -composite "embed_pape.png"
         stamped_pape="embed_pape_$(date +%T).png"
-        convert <( curl -s "wttr.in/_tqp0.png" ) -resize 200% weather_report.png
-        convert "$pape" "weather_report.png" -gravity center -geometry +0+0 -composite $stamped_pape
-        pape="$(pwd)/$stamped_pape"
+        cp embed_pape.png "$stamped_pape"
+        pape="$stamped_pape"
     fi
 
     if which osascript; then
-        rm /Users/wtheisen/Pictures/Weather\ Wallpaper/*.png
-        cp $pape "/Users/wtheisen/Pictures/Weather Wallpaper/"
+        rm ~/Pictures/Weather\ Wallpaper/*.png
+        cp "$pape" ~/Pictures/Weather\ Wallpaper/
     else
         case $XDG_CURRENT_DESKTOP in
             *XFCE*)
@@ -117,8 +105,8 @@ set_pape () {
         fi
     fi
 
+    rm weather_report.png
     rm resized_pape.png
-    rm $stamped_pape
 }
 
 exit_help () {
@@ -132,8 +120,6 @@ exit_help () {
     exit 1
 }
 
-iata="0"
-zip="0"
 pape_prefix="0"
 use_wal=0
 embed=0
@@ -144,14 +130,6 @@ while [[ $# -gt 0 ]]; do
     case $arg in
         -p)
             pape_prefix="$2"
-            shift; shift
-            ;;
-        --iata)
-            iata="$2"
-            shift; shift
-            ;;
-        --zip)
-            zip="$2"
             shift; shift
             ;;
         --wal)
@@ -172,14 +150,8 @@ if [[ "$pape_prefix" == "0" ]]; then
     exit_help "Either the paper prefix or airport code is unset"
 fi
 
-get_lat_long
-
-url="https://api.sunrise-sunset.org/json?lat=$lat&lng=$lng&date=today&formatted=0"
-json=$(curl -s "$url")
-
-get_rise_set_time
-get_time_chunk
 get_weather
+get_time_chunk
 
 echo "Real Weather: $w_type"
 get_simple_weather
