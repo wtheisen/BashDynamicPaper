@@ -10,7 +10,6 @@ on linux. On mac it still requires [jq](https://stedolan.github.io/jq/) but inst
 also play nicely with [pywal](https://github.com/dylanaraps/pywal) should you want
  to change your themes w/r/t the wallpaper. Right now it uses [wttr.in]()'s ability
 to get the location via IP so if you're using a VPN it might not play nicely.
-Currently `--zip` only supports the locations in the United States.
 
 ### Example
 
@@ -18,12 +17,10 @@ Currently `--zip` only supports the locations in the United States.
 
 ### Usage
 ```
-USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT_ID]
+USAGE: dynamicWallpaper -p [PAPER_PREFIX]
     -p: The prefix of your wallpaper folder without a trailing /
-    -e: Embed a weather report into the middle of the background
---iata: Your local airport identifier in IATA [E.G. SBN], used as a proxy location for time data
- --zip: If you're rather far from an airport use your zipcode instead
- --wal: Use pywal if it's installed
+    -e: Embed a weather report into the middle of the background (OPTIONAL)
+ --wal: Use pywal if it's installed (OPTIONAL)
 ```
 
 ### File Formatting
@@ -48,4 +45,3 @@ located in the time folder.
 [Personal Wallpapers](https://www.dropbox.com/sh/nlgpsqia9mpxwqj/AACw_yVfhz_0K8jzVi44vkFja?dl=0)
 
 Here are the personal wallpapers I use if you want a small, already sorted, collection to start with.
-
