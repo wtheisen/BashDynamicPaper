@@ -1,17 +1,28 @@
 #!/bin/bash
-
 [[ "$(uname -s)" = "Darwin" ]] && PATH="/usr/local/bin:${PATH}" && export PATH
 command -v gdate >/dev/null 2>&1 && date() { command gdate "${@}"; }
 
+load_prev_weather () {
+    w_type=$(sed '1q;d' /tmp/prev_weather.dat)
+    t_type=$(sed '2q;d' /tmp/prev_weather.dat)
+
+    rm /tmp/prev_weather.dat
+}
+
 get_weather () {
-    # weatherdata=$(curl -s "wttr.in/$1?format=j1")
     weatherdata=$(curl -s "wttr.in/?format=j1")
 
-    temp=$(echo "$weatherdata" | jq -r '.current_condition[0].temp_F' )
-    w_type=$(echo "$weatherdata" | jq -r '.current_condition[0].weatherDesc[0].value')
-    sunrise=$(echo "$weatherdata" | jq -r '.weather[0].astronomy[0].sunrise' | tr -d ":AM[:space:]" | sed 's/^0//')
-    sunset=$(echo "$weatherdata" | jq -r '.weather[0].astronomy[0].sunset'| tr -d ":PM[:space:]" | sed 's/^0//')
-    sunset=$((sunset + 1200))
+    if jq -e . >/dev/null 2>&1 <<< "$weatherdata"; then
+        temp=$(echo "$weatherdata" | jq -r '.current_condition[0].temp_F' )
+        w_type=$(echo "$weatherdata" | jq -r '.current_condition[0].weatherDesc[0].value')
+        sunrise=$(echo "$weatherdata" | jq -r '.weather[0].astronomy[0].sunrise' | tr -d ":AM[:space:]" | sed 's/^0//')
+        sunset=$(echo "$weatherdata" | jq -r '.weather[0].astronomy[0].sunset'| tr -d ":PM[:space:]" | sed 's/^0//')
+        sunset=$((sunset + 1200))
+    else
+        echo "wttr.in failure, using previous weather."
+        wttr_fail=1
+    fi
+
 }
 
 get_time_chunk () {
@@ -48,12 +59,10 @@ get_simple_weather () {
     fi
 }
 
-
 set_pape () {
     if ! pape=$(find "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1); then
         pape=$(find "$pape_prefix"/"$t_type"/* | shuf -n 1)
     fi
-
 
     if [[ $embed -eq 1 ]]; then
         if which osascript; then
@@ -72,11 +81,13 @@ set_pape () {
         convert "$pape" "weather_report.png" -gravity center -geometry +0+0 -composite "embed_pape.png"
         stamped_pape="embed_pape_$(date +%T).png"
         cp embed_pape.png "$stamped_pape"
+        convert <( curl -s "wttr.in/_tqp0.png" ) -resize 200% weather_report.png
+        convert "$pape" "weather_report.png" -gravity center -geometry +0+0 -composite "$stamped_pape"
         pape="$stamped_pape"
     fi
 
     if which osascript; then
-        rm ~/Pictures/Weather\ Wallpaper/*.png
+        rm ~/Pictures/Weather\ Wallpaper/*
         cp "$pape" ~/Pictures/Weather\ Wallpaper/
     else
         case $XDG_CURRENT_DESKTOP in
@@ -107,6 +118,10 @@ set_pape () {
 
     rm weather_report.png
     rm resized_pape.png
+    rm "$stamped_pape"
+    rm /tmp/prev_weather.dat
+    echo "$w_type" >> /tmp/prev_weather.dat
+    echo "$t_type" >> /tmp/prev_weather.dat
 }
 
 exit_help () {
@@ -114,8 +129,6 @@ exit_help () {
     echo "USAGE: dynamicWallpaper -p [PAPER_PREFIX] -w [AIRPORT_CALLSIGN]"
     printf "\t-p: The prefix of your wallpaper folder without a trailing /\n"
     printf "\t-e: Embed a little weather preview png in the wallpaper\n"
-    printf "\t--iata: Local airport callsign in IATA [e.g. SBN], used for the time parameters\n"
-    printf "\t--zip: If you're in the US and at some distance from an airport, use your zipcode instead\n"
     printf "\t--wal: Use pywal if it's installed\n"
     exit 1
 }
@@ -123,6 +136,7 @@ exit_help () {
 pape_prefix="0"
 use_wal=0
 embed=0
+wttr_fail=0
 
 while [[ $# -gt 0 ]]; do
     arg="$1"
@@ -147,14 +161,20 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ "$pape_prefix" == "0" ]]; then
-    exit_help "Either the paper prefix or airport code is unset"
+    exit_help "The paper prefix is unset."
 fi
 
 get_weather
-get_time_chunk
-
 echo "Real Weather: $w_type"
-get_simple_weather
+
+if [[ wttr_fail -eq 1 ]]; then
+    load_prev_weather
+    embed=0
+else
+    get_time_chunk
+    get_simple_weather
+fi
+
 echo "Time Type: $t_type, Weather Type: $w_type"
 
 if [[ "$t_type" == "Night" ]] && [[ "$w_type" == "Sun" ]]; then
