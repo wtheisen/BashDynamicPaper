@@ -48,19 +48,20 @@ get_time_chunk () {
 get_simple_weather () {
     echo "Temp: $temp"
 
-    if echo "$w_type" | grep -i -q -E "sun|clear" && (( temp >= 34 )); then
+    if echo "$w_type" | grep -i -q -E "sun|sunny|clear" && (( temp >= 34 )); then
         w_type="Sun"
     elif echo "$w_type" | grep -q -i "snow" || ((temp < 34)); then
         w_type="Snow"
     elif echo "$w_type" | grep -i -q -E "rain|overcast|Light drizzle"; then
         w_type="Rain"
     else
-        echo "Misc";
+        w_type="Misc"
     fi
 }
 
 set_pape () {
-    if ! pape=$(find "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1); then
+    # if ! pape=$(find "$pape_prefix"/"$t_type"/"$w_type"/* "$pape_prefix"/"$t_type"/Misc/* | shuf -n 1); then
+    if ! pape=$(find "$pape_prefix"/"$t_type"/"$w_type"/* | shuf -n 1); then
         pape=$(find "$pape_prefix"/"$t_type"/* | shuf -n 1)
     fi
 
@@ -81,7 +82,7 @@ set_pape () {
         convert "$pape" "weather_report.png" -gravity center -geometry +0+0 -composite "embed_pape.png"
         stamped_pape="embed_pape_$(date +%T).png"
         cp embed_pape.png "$stamped_pape"
-        convert <( curl -s "wttr.in/_tqp0.png" ) -resize 200% weather_report.png
+        convert <( curl -s "wttr.in/_tqp0.png" ) -resize 175% weather_report.png
         convert "$pape" "weather_report.png" -gravity center -geometry +0+0 -composite "$stamped_pape"
         pape="$stamped_pape"
     fi
