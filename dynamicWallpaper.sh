@@ -98,7 +98,10 @@ set_pape () {
                 grep --color=never last-image | \
                 while read -r path; do xfconf-query --channel xfce4-desktop --property "$path" -s "$pape"; done
                 ;;
-            *)
+	    *GNOME*)
+		gsettings set org.gnome.desktop.background picture-uri "$pape"
+		;;
+	    *)
                 feh --randomize --bg-fill "$pape"
                 ;;
         esac
