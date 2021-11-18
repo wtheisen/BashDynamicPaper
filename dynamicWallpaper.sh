@@ -69,7 +69,7 @@ set_pape () {
         if which osascript; then
             res=$(/usr/sbin/system_profiler SPDisplaysDataType | grep Resolution | awk '{print $2, $4}' | tr " " "x")
         else
-            pos_res=$(xrandr | grep \ connected | awk '{if ($3 == "primary") {print $4} else {print $3} }' | cut -f 1 -d '+')
+	    pos_res=$(xrandr | awk '/ connected.*[0-9]+x[0-9]+/ {if ($3 == "primary") {print $4} else {print $3} }' | cut -f 1 -d '+')
             res=$(echo "$pos_res" | head -n 1)
         fi
 
@@ -87,6 +87,8 @@ set_pape () {
         pape="$stamped_pape"
     fi
 
+    pape=$(realpath $pape)
+
     if which osascript; then
         rm ~/Pictures/Weather\ Wallpaper/*
         cp "$pape" ~/Pictures/Weather\ Wallpaper/
@@ -98,7 +100,11 @@ set_pape () {
                 grep --color=never last-image | \
                 while read -r path; do xfconf-query --channel xfce4-desktop --property "$path" -s "$pape"; done
                 ;;
-            *)
+	    *GNOME*)
+		export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID/bus"
+            	gsettings set org.gnome.desktop.background picture-uri "file://$pape"
+		;;
+	    *)
                 feh --randomize --bg-fill "$pape"
                 ;;
         esac
@@ -119,7 +125,7 @@ set_pape () {
 
     rm weather_report.png
     rm resized_pape.png
-    rm "$stamped_pape"
+    #rm "$stamped_pape"
     rm /tmp/prev_weather.dat
     echo "$w_type" >> /tmp/prev_weather.dat
     echo "$t_type" >> /tmp/prev_weather.dat
