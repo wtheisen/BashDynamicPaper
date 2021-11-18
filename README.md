@@ -4,9 +4,10 @@ will change your wallpaper based both on the time of day and the weather. The ti
 into four categories: morning, day, evening, and night. A sunrise/sunset api is used, which means that
 the code will adjust as the seasons change and night grows shorter or longer. The supported weather types
 right now are just rain, sun, and snow. If there are more of them you'd like to see I'm more than happy to add support.
-Requires both [jq](https://stedolan.github.io/jq/) and [feh](https://feh.finalrewind.org/)
+It requires both [jq](https://stedolan.github.io/jq/) and [feh](https://feh.finalrewind.org/)
 on linux. On mac it still requires [jq](https://stedolan.github.io/jq/) but instead of feh,
-[coreutils](https://formulae.brew.sh/formula/coreutils) (For shuf and gdate). Will
+[coreutils](https://formulae.brew.sh/formula/coreutils) (For shuf and gdate). Additionally on both linux and MacOS, if you
+want to use the embed feature you will also need [imagemagick](https://imagemagick.org/script/download.php). The code will
 also play nicely with [pywal](https://github.com/dylanaraps/pywal) should you want
  to change your themes w/r/t the wallpaper. Right now it uses [wttr.in]()'s ability
 to get the location via IP so if you're using a VPN it might not play nicely.
